@@ -54,10 +54,9 @@ public class CustomerService {
             .build();
     }
 
-    public Optional<CustomerResponse> getCustomerDetails() {
-        var firebaseUserDetails = (FirebaseUserDetailsDto) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        log.info("Retrieving customer with firebase uid: {}", firebaseUserDetails.firebaseUid());
-        return customerRepository.findByFirebaseUid(firebaseUserDetails.firebaseUid()).map(
+    public Optional<CustomerResponse> getCustomerDetails(String firebaseUid) {
+        log.info("Retrieving customer with firebase uid: {}", firebaseUid);
+        return customerRepository.findByFirebaseUid(firebaseUid).map(
             customer -> CustomerResponse.builder()
                 .firebaseUid(customer.getFirebaseUid())
                 .email(customer.getEmail())
