@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import za.co.pacifish.registration_service.dto.CreateCustomerRequest;
 import za.co.pacifish.registration_service.dto.CustomerResponse;
 import za.co.pacifish.registration_service.dto.FirebaseUserDetailsDto;
+import za.co.pacifish.registration_service.dto.UpdateCustomerRequest;
 import za.co.pacifish.registration_service.entity.Customer;
 import za.co.pacifish.registration_service.repository.CustomerRepository;
 import com.google.firebase.auth.UserRecord.UpdateRequest;
@@ -66,5 +67,41 @@ public class CustomerService {
                 .phoneNumber(customer.getPhoneNumber())
                 .build()
         );
+    }
+
+    public CustomerResponse updateCustomer(UpdateCustomerRequest request) throws FirebaseAuthException {
+        var firebaseUserDetails = (FirebaseUserDetailsDto) Objects.requireNonNull(
+                SecurityContextHolder.getContext().getAuthentication()
+        ).getPrincipal();
+
+        Customer customer = customerRepository.findByFirebaseUid(firebaseUserDetails.firebaseUid())
+                .orElseThrow(() -> new IllegalStateException("Customer profile not found"));
+
+        customer.setFirstName(request.firstName());
+        customer.setLastName(request.lastName());
+        customer.setPhoneNumber(request.phoneNumber());
+
+        log.info("Updating customer with firebase uid: {}", customer.getFirebaseUid());
+        Customer updated = customerRepository.save(customer);
+
+        UpdateRequest updateRequest = new UpdateRequest(firebaseUserDetails.firebaseUid())
+                .setDisplayName(request.firstName() + " " + request.lastName());
+        firebaseAuth.updateUser(updateRequest);
+
+        return CustomerResponse.builder()
+                .firebaseUid(updated.getFirebaseUid())
+                .email(updated.getEmail())
+                .firstName(updated.getFirstName())
+                .lastName(updated.getLastName())
+                .phoneNumber(updated.getPhoneNumber())
+                .build();
+    }
+
+    public boolean profileExists() {
+        var firebaseUserDetails = (FirebaseUserDetailsDto) Objects.requireNonNull(
+                SecurityContextHolder.getContext().getAuthentication()
+        ).getPrincipal();
+
+        return customerRepository.findByFirebaseUid(firebaseUserDetails.firebaseUid()).isPresent();
     }
 }
