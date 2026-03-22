@@ -6,19 +6,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import za.co.pacifish.registration_service.dto.CheckProfileExistsResponse;
 import za.co.pacifish.registration_service.dto.CreateCustomerRequest;
 import za.co.pacifish.registration_service.dto.CustomerResponse;
 import za.co.pacifish.registration_service.dto.UpdateCustomerRequest;
 import za.co.pacifish.registration_service.service.CustomerService;
 
 @RestController
-@RequestMapping("/api/customers")
+@RequestMapping("/customers")
 @RequiredArgsConstructor
 public class CustomerController {
 
     private final CustomerService customerService;
 
-    @PostMapping("/profile")
+    @PostMapping
     public ResponseEntity<CustomerResponse> createCustomerProfile(
             @RequestBody CreateCustomerRequest request,
             Authentication authentication
@@ -28,7 +29,7 @@ public class CustomerController {
                 .body(customerService.createCustomer(request));
     }
 
-    @GetMapping("/profile")
+    @GetMapping
     public ResponseEntity<CustomerResponse> getCustomerProfile(
             Authentication authentication
     ) {
@@ -37,7 +38,7 @@ public class CustomerController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/profile")
+    @PutMapping
     public ResponseEntity<CustomerResponse> updateCustomerProfile(
             @RequestBody UpdateCustomerRequest request,
             Authentication authentication
@@ -47,11 +48,11 @@ public class CustomerController {
         );
     }
 
-    @GetMapping("/profile/exists")
-    public ResponseEntity<Boolean> checkProfileExists(
+    @GetMapping("/exists")
+    public ResponseEntity<CheckProfileExistsResponse> checkProfileExists(
             Authentication authentication
     ) {
         boolean exists = customerService.profileExists();
-        return ResponseEntity.ok(exists);
+        return ResponseEntity.ok(new CheckProfileExistsResponse(exists));
     }
 }
