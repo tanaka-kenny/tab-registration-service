@@ -85,7 +85,6 @@ public class FirebaseIdTokenFilter extends OncePerRequestFilter {
             log.error("Firebase token verification failed: {}", ex.getMessage());
             log.error("Error code: {}", ex.getAuthErrorCode());
             setAuthErrorDetails(response);
-            return; // STOP HERE - don't continue the filter chain
         }
     }
 
