@@ -2,7 +2,7 @@ server:
   port: 8481
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5431/tab-registration-dev
+    url: jdbc:postgresql://localhost:5431/tab_registration_dev
     username: myuser
     password: secret
     driver-class-name: org.postgresql.Driver

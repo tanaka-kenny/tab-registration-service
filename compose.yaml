@@ -3,7 +3,7 @@ services:
     image: 'postgres:latest'
     container_name: tab-registration-dev
     environment:
-      - 'POSTGRES_DB=tab-registration-dev'
+      - 'POSTGRES_DB=tab_registration_dev'
       - 'POSTGRES_PASSWORD=secret'
       - 'POSTGRES_USER=myuser'
     ports:

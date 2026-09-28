@@ -14,6 +14,8 @@ import za.co.pacifish.registration_service.entity.Customer;
 import za.co.pacifish.registration_service.repository.CustomerRepository;
 import com.google.firebase.auth.UserRecord.UpdateRequest;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -26,13 +28,14 @@ public class CustomerService {
 
     public CustomerResponse createCustomer(CreateCustomerRequest request) throws FirebaseAuthException {
         var firebaseUserDetails = (FirebaseUserDetailsDto) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        Optional<Customer> byFirebaseUid = customerRepository.findByFirebaseUid(firebaseUserDetails.firebaseUid());
+        String firebaseUid = firebaseUserDetails.firebaseUid();
+        Optional<Customer> byFirebaseUid = customerRepository.findByFirebaseUid(firebaseUid);
         if (byFirebaseUid.isPresent()) {
             throw new IllegalStateException("Customer already exists.");
         }
 
         Customer customer = Customer.builder()
-            .firebaseUid(firebaseUserDetails.firebaseUid())
+            .firebaseUid(firebaseUid)
             .email(firebaseUserDetails.email())
             .firstName(request.firstName())
             .lastName(request.lastName())
@@ -42,9 +45,13 @@ public class CustomerService {
         log.info("Creating customer with firebase uid: {}", customer.getFirebaseUid());
         Customer save = customerRepository.save(customer);
 
-        UpdateRequest updateRequest = new UpdateRequest(firebaseUserDetails.firebaseUid())
+        UpdateRequest updateRequest = new UpdateRequest(firebaseUid)
             .setDisplayName(request.firstName());
         firebaseAuth.updateUser(updateRequest);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("internal_user_id", save.getId().toString());
+        FirebaseAuth.getInstance().setCustomUserClaims(firebaseUid, claims);
 
         return CustomerResponse.builder()
             .firebaseUid(save.getFirebaseUid())
